@@ -89,7 +89,16 @@ backgroundColor = backgroundColor || 'white';
   const definition = fs.readFileSync(input, 'utf-8')
 
   await page.$eval('#container', (container, definition, mermaidConfig, myCSS) => {
-    container.innerHTML = definition
+    const escapeHtml = function (unsafe) {
+      return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+    }
+
+    container.innerHTML = escapeHtml(definition)
     window.mermaid.initialize(mermaidConfig)
 
     if (myCSS) {
