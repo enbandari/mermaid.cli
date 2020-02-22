@@ -66,12 +66,12 @@ if (puppeteerConfigFile) {
 }
 
 // check cssFile
-let myCSS
 if (cssFile) {
   if (!fs.existsSync(cssFile)) {
     error(`CSS file "${cssFile}" doesn't exist`)
   }
-  myCSS = fs.readFileSync(cssFile, 'utf-8')
+  const cssScript = fs.readFileSync(cssFile, 'utf-8')
+  mermaidConfig.themeCSS = cssScript
 }
 
 // normalize args
@@ -88,7 +88,7 @@ backgroundColor = backgroundColor || 'white';
   await page.evaluate(`document.body.style.background = '${backgroundColor}'`)
   const definition = fs.readFileSync(input, 'utf-8')
 
-  await page.$eval('#container', (container, definition, mermaidConfig, myCSS) => {
+  await page.$eval('#container', (container, definition, mermaidConfig) => {
     const escapeHtml = function (unsafe) {
       return unsafe
         .replace(/&/g, '&amp;')
@@ -100,21 +100,8 @@ backgroundColor = backgroundColor || 'white';
 
     container.innerHTML = escapeHtml(definition)
     window.mermaid.initialize(mermaidConfig)
-
-    if (myCSS) {
-      const head = window.document.head || window.document.getElementsByTagName('head')[0]
-      const style = document.createElement('style')
-      style.type = 'text/css'
-      if (style.styleSheet) {
-        style.styleSheet.cssText = myCSS
-      } else {
-        style.appendChild(document.createTextNode(myCSS))
-      }
-      head.appendChild(style)
-    }
-
     window.mermaid.init(undefined, container)
-  }, definition, mermaidConfig, myCSS)
+  }, definition, mermaidConfig)
 
   if (output.endsWith('svg')) {
     const svg = await page.$eval('#container', container => container.innerHTML)
